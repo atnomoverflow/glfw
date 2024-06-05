@@ -28,7 +28,7 @@ project "GLFW"
 	warnings "off"
 
     targetdir("bin/" .. outputdir .. "/%{prj.name}")
-    objdir("obj/" .. outputdir .. "/%{prj.name}")
+    objdir("bin-int/" .. outputdir .. "/%{prj.name}")
 
     files {
         "include/GLFW/glfw3.h",
