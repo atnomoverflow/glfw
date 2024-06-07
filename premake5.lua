@@ -57,11 +57,9 @@ project "GLFW"
     }
 
 
-
     filter "system:linux"
         pic "On"
         systemversion "latest"
-
         files
         {
             "src/linux_joystick.h",
@@ -70,6 +68,8 @@ project "GLFW"
 			"src/posix_time.c",
 			"src/posix_thread.c",
 			"src/posix_module.c",
+            "src/posix_poll.c",
+            "src/posix_poll.h",
             "src/linux_joystick.c",
             "src/xkb_unicode.c",
             "src/egl_context.c",
@@ -123,19 +123,22 @@ project "GLFW"
                 generateWaylandProtocol("xdg-activation-v1.xml")
                 generateWaylandProtocol("xdg-decoration-unstable-v1.xml")
             end
-
             files
             {
                 "src/wl_platform.h",
                 "src/wl_init.c",
                 "src/wl_monitor.c",
                 "src/wl_window.c",
+                "src/*-client-protocol-code.h",
+                "src/*-client-protocol.h"
             }
 
             defines
             {
-                "_GLFW_WAYLAND"
+                "_GLFW_WAYLAND",
+                "_GLFW_BUILD_DLL"
             }
+
         filter { "options:window-manager=x11" }
             files
             {
