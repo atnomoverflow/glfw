@@ -1267,17 +1267,21 @@ static void handleEvents(double* timeout)
 
             if (read(_glfw.wl.keyRepeatTimerfd, &repeats, sizeof(repeats)) == 8)
             {
-                for (uint64_t i = 0; i < repeats; i++)
+                if(_glfw.wl.keyboardFocus)
                 {
-                    _glfwInputKey(_glfw.wl.keyboardFocus,
-                                  translateKey(_glfw.wl.keyRepeatScancode),
-                                  _glfw.wl.keyRepeatScancode,
-                                  GLFW_PRESS,
-                                  _glfw.wl.xkb.modifiers);
-                    inputText(_glfw.wl.keyboardFocus, _glfw.wl.keyRepeatScancode);
+                    for (uint64_t i = 0; i < repeats; i++)
+                    {
+                        _glfwInputKey(_glfw.wl.keyboardFocus,
+                                      translateKey(_glfw.wl.keyRepeatScancode),
+                                      _glfw.wl.keyRepeatScancode,
+                                      GLFW_PRESS,
+                                      _glfw.wl.xkb.modifiers);
+                        inputText(_glfw.wl.keyboardFocus, _glfw.wl.keyRepeatScancode);
+                    }
+
+                    event = GLFW_TRUE;
                 }
 
-                event = GLFW_TRUE;
             }
         }
 
@@ -1329,6 +1333,7 @@ static char* readDataOfferAsString(struct wl_data_offer* offer, const char* mime
             if (!longer)
             {
                 _glfwInputError(GLFW_OUT_OF_MEMORY, NULL);
+                _glfw_free(string);
                 close(fds[0]);
                 return NULL;
             }
@@ -1348,6 +1353,7 @@ static char* readDataOfferAsString(struct wl_data_offer* offer, const char* mime
             _glfwInputError(GLFW_PLATFORM_ERROR,
                             "Wayland: Failed to read from data offer pipe: %s",
                             strerror(errno));
+            _glfw_free(string);
             close(fds[0]);
             return NULL;
         }
@@ -2183,7 +2189,12 @@ void _glfwDestroyWindowWayland(_GLFWwindow* window)
         _glfw.wl.pointerFocus = NULL;
 
     if (window == _glfw.wl.keyboardFocus)
+	{
+		struct itimerspec timer = {0};
+		timerfd_settime(_glfw.wl.keyRepeatTimerfd, 0, &timer, NULL);
+
         _glfw.wl.keyboardFocus = NULL;
+	}
 
     if (window->wl.fractionalScale)
         wp_fractional_scale_v1_destroy(window->wl.fractionalScale);
